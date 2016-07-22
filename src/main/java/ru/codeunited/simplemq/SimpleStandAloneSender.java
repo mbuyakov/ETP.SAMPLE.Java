@@ -34,12 +34,12 @@ public class SimpleStandAloneSender {
 	public static String queueName = "MOSGAZ.APPLICATION_INC";
 */
 	
-	public static String hosts = "etp3.sm-soft.ru(1414),etp4.sm-soft.ru(1414)";
-	public static String qmgrName = "IBMESBQM";
-	public static String channelName = "CLIENT.TEST.SVRCONN";
-	public static String queueName = "TEST.SHIFT_INC";
-	public static String login = "test";
-	public static String password = "passw0rd";
+	public static String hosts = "etp3.sm-soft.ru(2414),etp4.sm-soft.ru(2414)";
+	public static String qmgrName = "GU01QM";
+	public static String channelName = "CLN.SAMPLE.SVRCONN";
+	public static String queueName = "SAMPLE.APPLICATION_INC";
+	public static String login = "sample";
+	public static String password = "sample";
 	
     public static void main(String[] args) throws JMSException, InterruptedException {
         com.ibm.mq.jms.MQQueueConnectionFactory factory = new MQQueueConnectionFactory();
