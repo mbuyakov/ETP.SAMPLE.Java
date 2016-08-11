@@ -9,6 +9,7 @@ import ru.codeunited.jms.simple.ack.strategy.BackoutOnExceptionStrategy;
 import javax.jms.*;
 
 import static ru.codeunited.jms.simple.JmsHelper.*;
+import static ru.codeunited.jms.simple.SendMessageTX.sendMessage;
 
 /**
  * codeunited.ru
@@ -21,7 +22,11 @@ public class ListenMessageACK {
 
     private static final String TARGET_QUEUE = "SAMPLE.APPLICATION_INC";
 
+    private static final String STATUS_QUEUE = "SAMPLE.STATUS_OUT";
+
     private static final String BACKOUT_QUEUE = "SAMPLE.APPLICATION_INC.BK";
+
+    private static final String  STATUS_MESSAGE_OK = "Сообщение получено";
 
     private static final long SHUTDOWN_TIMEOUT = 30000L;
 
@@ -34,9 +39,12 @@ public class ListenMessageACK {
         Connection connection = connect(connectionFactory);
         Session session = connection.createSession(false, Session.CLIENT_ACKNOWLEDGE);
         Queue queue = resolveQueue(TARGET_QUEUE, session);
+        Queue statusQueue = resolveQueue(STATUS_QUEUE, session);
+        MessageProducer producer = session.createProducer(statusQueue);
         MessageConsumer consumer = session.createConsumer(queue);
+
         consumer.setMessageListener(
-                new LogMessageListenerACK(service, logService, session)
+                new LogMessageListenerACK(service, logService, session,producer)
                         .setExceptionHandlingStrategy(new BackoutOnExceptionStrategy(BACKOUT_QUEUE, logService))
                 //.setExceptionHandlingStrategy(new RecoverOnException())
         );
@@ -49,12 +57,14 @@ public class ListenMessageACK {
         // release resources
         connection.stop();
         consumer.close();
+        producer.close();
         session.close();
         connection.close();
 
     }
 
     private static class LogMessageListenerACK implements MessageListener {
+        private MessageProducer producer;
 
         private final BusinessService service;
 
@@ -64,10 +74,20 @@ public class ListenMessageACK {
 
         private ExceptionHandlingStrategy exceptionHandlingStrategy;
 
-        private LogMessageListenerACK(BusinessService service, MessageLoggerService loggerService, Session session) {
+
+       /* private LogMessageListenerACK(BusinessService service, MessageLoggerService loggerService, Session session) throws JMSException {
             this.service = service;
             this.loggerService = loggerService;
             this.session = session;
+            this.statusQueue = resolveQueue(STATUS_QUEUE, session);
+            this.producer = session.createProducer(statusQueue);*/
+
+        private LogMessageListenerACK(BusinessService service, MessageLoggerService loggerService, Session session, MessageProducer producer) throws JMSException {
+            this.service = service;
+            this.loggerService = loggerService;
+            this.session = session;
+            this.producer = producer;
+
         }
 
         public LogMessageListenerACK setExceptionHandlingStrategy(ExceptionHandlingStrategy exceptionHandlingStrategy) {
@@ -84,6 +104,10 @@ public class ListenMessageACK {
                 BusinessResponse response = service.processRequest(new BusinessRequest(textMessage.getText()));
 
                 message.acknowledge();
+
+                String resultMessageBody = STATUS_MESSAGE_OK + " [ " + textMessage.getText() + " ] ";
+                Message resultMessage = sendMessage(session, producer, resultMessageBody);
+                LOG.info("Send message ID [{}]. Body [{}]", resultMessage.getJMSMessageID(), resultMessageBody);
                 loggerService.handled(message);
 
             } catch (Exception e) {
@@ -91,5 +115,6 @@ public class ListenMessageACK {
                 exceptionHandlingStrategy.handle(session, message, e);
             }
         }
+
     }
 }

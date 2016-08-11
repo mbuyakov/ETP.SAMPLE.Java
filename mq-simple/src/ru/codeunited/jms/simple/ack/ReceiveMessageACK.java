@@ -9,6 +9,7 @@ import ru.codeunited.jms.simple.ack.strategy.BackoutOnExceptionStrategy;
 import javax.jms.*;
 
 import static ru.codeunited.jms.simple.JmsHelper.*;
+import static ru.codeunited.jms.simple.SendMessageTX.sendMessage;
 
 
 /**
@@ -22,7 +23,11 @@ public class ReceiveMessageACK {
 
     private static final String TARGET_QUEUE = "SAMPLE.APPLICATION_INC";
 
+    private static final String STATUS_QUEUE = "SAMPLE.STATUS_OUT";
+
     private static final String BACKOUT_QUEUE = "SAMPLE.APPLICATION_INC.BK";
+
+    private static final String  STATUS_MESSAGE_OK = "Сообщение получено";
 
     private static final long TIMEOUT = 1000L;
 
@@ -35,26 +40,31 @@ public class ReceiveMessageACK {
         Connection connection = connect(connectionFactory);
         Session session = connection.createSession(false, Session.CLIENT_ACKNOWLEDGE);
         Queue queue = resolveQueue(TARGET_QUEUE, session);
+        Queue statusQueue = resolveQueue(STATUS_QUEUE, session);
         MessageConsumer consumer = session.createConsumer(queue);
+        MessageProducer producer = session.createProducer(statusQueue);
 
         ExceptionHandlingStrategy exceptionHandlingStrategy = new BackoutOnExceptionStrategy(BACKOUT_QUEUE, logService);
 
         connection.start();             // !DON'T FORGET!
-        TextMessage message = (TextMessage) consumer.receive(TIMEOUT); // or receive(), or receiveNoWait
-        while (message != null) {       // null - queue is empty.
-            logService.incoming(message);
+        TextMessage receivedMessage = (TextMessage) consumer.receive(TIMEOUT); // or receive(), or receiveNoWait
+        while (receivedMessage != null) {       // null - queue is empty.
+            logService.incoming(receivedMessage);
             try {
                 /* it accepts numbers only. So, if you put alphabet it should throw exception */
-                BusinessResponse response = service.processRequest(new BusinessRequest(message.getText()));
+                BusinessResponse response = service.processRequest(new BusinessRequest(receivedMessage.getText()));
+                receivedMessage.acknowledge();  // we use CLIENT_ACKNOWLEDGE
 
-                message.acknowledge();  // we use CLIENT_ACKNOWLEDGE
-                logService.handled(message);
+                String resultMessageBody = STATUS_MESSAGE_OK + " [ " + receivedMessage.getText() + " ] ";
+                Message resultMessage = sendMessage(session, producer, resultMessageBody);
+                LOG.info("Send message ID [{}]. Body [{}]", resultMessage.getJMSMessageID(), resultMessageBody);
+                logService.handled(receivedMessage);
             } catch (Exception e) {
-                logService.error(message, e);
+                logService.error(receivedMessage, e);
 
-                exceptionHandlingStrategy.handle(session, message, e);
+                exceptionHandlingStrategy.handle(session, receivedMessage, e);
             }
-            message = (TextMessage) consumer.receive(TIMEOUT);
+            receivedMessage = (TextMessage) consumer.receive(TIMEOUT);
         }
 
         LOG.info("Queue is empty");
@@ -62,6 +72,7 @@ public class ReceiveMessageACK {
         // release resources
         connection.stop();
         consumer.close();
+        producer.close();
         session.close();
         connection.close();
 
