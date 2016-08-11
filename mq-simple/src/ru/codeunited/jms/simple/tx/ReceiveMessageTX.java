@@ -9,6 +9,7 @@ import javax.jms.*;
 import static ru.codeunited.jms.simple.JmsHelper.connect;
 import static ru.codeunited.jms.simple.JmsHelper.getConnectionFactory;
 import static ru.codeunited.jms.simple.JmsHelper.resolveQueue;
+import static ru.codeunited.jms.simple.SendMessageTX.sendMessage;
 
 /**
  * codeunited.ru
@@ -23,7 +24,10 @@ public class ReceiveMessageTX {
 
     private static final MessageLoggerService logService = new MessageLoggerServiceImpl();
 
-    private static final String TARGET_QUEUE = "SAMPLE.APPLICATION_INC";
+    private static final String APPLICATION_QUEUE = "SAMPLE.APPLICATION_INC";
+
+    private static final String STATUS_QUEUE = "SAMPLE.STATUS_OUT";
+    private static final String STATUS_MESSAGE_OK = "Сообщение получено: ";
 
     private static final long TIMEOUT = 1000L;
 
@@ -33,37 +37,40 @@ public class ReceiveMessageTX {
 
         // WORK UNIT START
         Session session = connection.createSession(true, Session.AUTO_ACKNOWLEDGE);
-        Queue queue = resolveQueue(TARGET_QUEUE, session);
-        MessageConsumer consumer = session.createConsumer(queue);
+        Queue applicationQueue = resolveQueue(APPLICATION_QUEUE, session);
+        Queue statusQueue = resolveQueue(STATUS_QUEUE, session);
+        MessageConsumer consumer = session.createConsumer(applicationQueue);
+        MessageProducer producer = session.createProducer(statusQueue);
 
         connection.start();
 
-        TextMessage message = (TextMessage) consumer.receive(TIMEOUT);
-        while (message != null) {
-            logService.incoming(message);
+        TextMessage receivedMessage = (TextMessage) consumer.receive(TIMEOUT);
+        while (receivedMessage != null) {
+            logService.incoming(receivedMessage);
 
             try {
-                BusinessResponse response = service.processRequest(new BusinessRequest(message.getText()));
-
+                BusinessResponse response = service.processRequest(new BusinessRequest(receivedMessage.getText()));
+                String resultMessageBody = STATUS_MESSAGE_OK + receivedMessage.getText();
+                Message resultMessage = sendMessage(session, producer, resultMessageBody);
+                LOG.debug("Send message ID [{}]. Body [{}]", resultMessage.getJMSMessageID(), resultMessageBody);
                 session.commit(); // We use transacted session
-                logService.handled(message);
+                LOG.info("Commit performed.");
+                logService.handled(receivedMessage);
             } catch (Exception e) {
-                logService.error(message, e);
+                logService.error(receivedMessage, e);
                 session.rollback();
-                logService.rollback(message);
+                logService.rollback(receivedMessage);
             }
-            message = (TextMessage) consumer.receive(TIMEOUT);
+            receivedMessage = (TextMessage) consumer.receive(TIMEOUT);
         }
-
         LOG.info("Queue is empty");
         // WORK UNIT END
 
         // release resources
         connection.stop();
         consumer.close();
+        producer.close();
         session.close();
         connection.close();
-
     }
-
 }
