@@ -9,6 +9,7 @@ import javax.jms.*;
 import static ru.codeunited.jms.simple.JmsHelper.connect;
 import static ru.codeunited.jms.simple.JmsHelper.getConnectionFactory;
 import static ru.codeunited.jms.simple.JmsHelper.resolveQueue;
+import static ru.codeunited.jms.simple.SendMessageTX.sendMessage;
 
 /**
  * codeunited.ru
@@ -25,6 +26,10 @@ public class ListenMessageTX {
 
     private static final String TARGET_QUEUE = "SAMPLE.APPLICATION_INC";
 
+    private static final String STATUS_QUEUE = "SAMPLE.STATUS_OUT";
+
+    private static final String STATUS_MESSAGE_OK = "Сообщение получено: ";
+
     private static final long SHUTDOWN_TIMEOUT = 10000L;
 
     public static void main(String[] args) throws JMSException, InterruptedException {
@@ -32,10 +37,12 @@ public class ListenMessageTX {
         Connection connection = connect(connectionFactory);
         final Session session = connection.createSession(true, Session.CLIENT_ACKNOWLEDGE);
 
-        Queue queue = resolveQueue(TARGET_QUEUE, session);
+        Queue applicationQueue = resolveQueue(TARGET_QUEUE, session);
 
-        MessageConsumer consumer = session.createConsumer(queue);
-        consumer.setMessageListener(new LogMessageListenerTX(session, service, logService));
+        MessageConsumer consumer = session.createConsumer(applicationQueue);
+        Queue statusQueue = resolveQueue(STATUS_QUEUE, session);
+        MessageProducer producer = session.createProducer(statusQueue);
+        consumer.setMessageListener(new LogMessageListenerTX(session, service, logService, producer));
 
         connection.start();     // !DON'T FORGET!
 
@@ -45,9 +52,9 @@ public class ListenMessageTX {
         // release resources
         connection.stop();
         consumer.close();
+        producer.close();
         session.close();
         connection.close();
-
     }
 
     private static class LogMessageListenerTX implements MessageListener {
@@ -58,10 +65,14 @@ public class ListenMessageTX {
 
         private final MessageLoggerService loggerService;
 
-        public LogMessageListenerTX(Session session, BusinessService service, MessageLoggerService loggerService) {
+        private MessageProducer producer;
+
+        public LogMessageListenerTX(Session session, BusinessService service, MessageLoggerService loggerService,
+                                    MessageProducer producer) throws JMSException {
             this.session = session;
             this.service = service;
             this.loggerService = loggerService;
+            this.producer = producer;
         }
 
         @Override
@@ -72,6 +83,9 @@ public class ListenMessageTX {
 
                 BusinessResponse response = service.processRequest(new BusinessRequest(textMessage.getText()));
 
+                String resultMessageBody = STATUS_MESSAGE_OK + textMessage.getText();
+                Message resultMessage = sendMessage(session, producer, resultMessageBody);
+                LOG.debug("Send message ID [{}]. Body [{}]", resultMessage.getJMSMessageID(), resultMessageBody);
                 session.commit();
                 loggerService.handled(message);
 

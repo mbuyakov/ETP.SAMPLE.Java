@@ -55,7 +55,7 @@ public class SendMessageTX {
         }
     }
 
-    private static Message sendMessage(Session session, MessageProducer producer, String messageBody) throws JMSException {
+    public static Message sendMessage(Session session, MessageProducer producer, String messageBody) throws JMSException {
         TextMessage message = session.createTextMessage();
         message.setText(messageBody);
         producer.send(message);
