@@ -1,4 +1,5 @@
 ### Java template
 *.class
-/target
+*/target
 .idea/
+*.iml
