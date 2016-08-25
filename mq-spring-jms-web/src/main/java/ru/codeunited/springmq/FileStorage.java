@@ -1,6 +1,9 @@
 package ru.codeunited.springmq;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import ru.codeunited.model.MessageEntity;
+import ru.codeunited.service.MessageIncQueueService;
 
 import javax.annotation.PostConstruct;
 import javax.jms.JMSException;
@@ -11,6 +14,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.logging.Logger;
 
 /**
  * Created by Igor on 2014.08.13.
@@ -18,9 +22,15 @@ import java.io.IOException;
 @Component
 public class FileStorage implements Storage {
 
+    private static final Logger LOG = Logger.getLogger(FileStorage.class.getName());
+
     public static final String EXTENSION = ".dat";
+    public static final String REGEX_NUMBERS_ONLY = "\\d+";
 
     private File destinationFolder;
+
+    @Autowired
+    private MessageIncQueueService messageIncQueueService;
 
     @PostConstruct
     public void postConstruction() {
@@ -42,11 +52,19 @@ public class FileStorage implements Storage {
             final String textPayload = textMessage.getText();
             
             if(textPayload.startsWith("error")) {
-            	throw new RuntimeException("error in message");
+//            if(!textPayload.matches(REGEX_NUMBERS_ONLY)) {
+                LOG.severe("Message contains not only numbers");
+                throw new RuntimeException("error in message");
             }
             final FileOutputStream stream = new FileOutputStream(createAbsoluteFileName(textMessage));
             stream.write(textPayload.getBytes("UTF-8"));
             stream.close();
+            MessageEntity messageEntity = new MessageEntity();
+            messageEntity.setMsgId(textMessage.getJMSMessageID());
+            messageEntity.setBody(textPayload);
+//            messageEntity.setQueueName(textMessage.getStringProperty());
+            messageIncQueueService.insert(messageEntity);
+            LOG.info("Message " + textPayload + " saved in DB");
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {

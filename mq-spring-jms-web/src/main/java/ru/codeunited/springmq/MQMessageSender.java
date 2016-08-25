@@ -8,11 +8,15 @@ import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.Session;
 import javax.jms.TextMessage;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Logger;
 
 /**
  * Created by Igor on 2014.07.31.
  */
 public class MQMessageSender {
+
+    private static final Logger LOG = Logger.getLogger(MQMessageSender.class.getName());
 
     @Autowired
     private JmsTemplate jmsTemplate;
@@ -41,11 +45,12 @@ public class MQMessageSender {
      * Use injected destinationQueue as target.
      * @param message
      */
-    public void send(final String message) {
-        send(message, getDestinationQueue());
+    public String send(final String message) throws JMSException {
+        return send(message, getDestinationQueue());
     }
 
-    public final void send(final String message, final String destinationQueue) {
+    public final String send(final String message, final String destinationQueue) throws JMSException {
+        final AtomicReference<TextMessage> messageAtomicReference = new AtomicReference<TextMessage>();
         jmsTemplate.send(destinationQueue, new MessageCreator() {
             @Override
             public Message createMessage(Session session) throws JMSException {
@@ -54,9 +59,11 @@ public class MQMessageSender {
                 if (needReply()) {
                     tm.setJMSReplyTo(jmsTemplate.getDestinationResolver().resolveDestinationName(session, getReplyToQueue(), false));
                 }
+                messageAtomicReference.set(tm);
                 return tm;
             }
         });
+        return messageAtomicReference.get().getJMSMessageID();
     }
 
     private boolean needReply() {
