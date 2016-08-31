@@ -1,10 +1,7 @@
 package ru.codeunited.dao;
 
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-
-import javax.sql.DataSource;
 
 /**
  * @author Natalia Andrianova on 17.08.2016.
@@ -19,11 +16,6 @@ public class MessageOutQueueDao extends AbstractDao {
 
     public MessageOutQueueDao() {
     }
-
-//    @Autowired
-//    public MessageOutQueueDao(DataSource dataSource) {
-//        super(dataSource);
-//    }
 
     @Override
     protected String getInsertStatement() {

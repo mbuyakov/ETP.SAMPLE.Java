@@ -30,7 +30,7 @@
         <webSphereMQVersion>7.5</webSphereMQVersion>
         <sampe.jars>${basedir}/src/main/webapp/WEB-INF/lib</sampe.jars>
         <jstl.version>1.2</jstl.version>
-        <dbh2.version>1.4.187</dbh2.version>
+        <dbh2.version>1.4.192</dbh2.version>
     </properties>
 
     <dependencies>

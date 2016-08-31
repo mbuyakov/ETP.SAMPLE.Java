@@ -9,7 +9,6 @@ import javax.annotation.PostConstruct;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.TextMessage;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -51,18 +50,18 @@ public class FileStorage implements Storage {
         try {
             final String textPayload = textMessage.getText();
             
-            if(textPayload.startsWith("error")) {
-//            if(!textPayload.matches(REGEX_NUMBERS_ONLY)) {
+            if(!textPayload.matches(REGEX_NUMBERS_ONLY)) {
                 LOG.severe("Message contains not only numbers");
-                throw new RuntimeException("error in message");
+                throw new RuntimeException("Error in message");
             }
+            LOG.info("Inside store");
             final FileOutputStream stream = new FileOutputStream(createAbsoluteFileName(textMessage));
             stream.write(textPayload.getBytes("UTF-8"));
             stream.close();
             MessageEntity messageEntity = new MessageEntity();
             messageEntity.setMsgId(textMessage.getJMSMessageID());
             messageEntity.setBody(textPayload);
-//            messageEntity.setQueueName(textMessage.getStringProperty());
+            messageEntity.setQueueName(textMessage.getJMSDestination().toString());
             messageIncQueueService.insert(messageEntity);
             LOG.info("Message " + textPayload + " saved in DB");
         } catch (FileNotFoundException e) {

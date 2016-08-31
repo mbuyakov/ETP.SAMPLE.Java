@@ -4,7 +4,7 @@
         <table id="table_out" class="table table-striped" display>
             <thead>
             <tr>
-                <th class="col-lg-2">ID</th>
+                <th class="col-lg-2">MSG_ID</th>
                 <th class="col-lg-2">Body</th>
                 <th class="col-lg-2">Queue</th>
                 <th class="col-lg-2">Date</th>

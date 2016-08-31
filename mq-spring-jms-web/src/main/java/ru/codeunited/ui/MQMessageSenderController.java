@@ -13,7 +13,6 @@ import ru.codeunited.service.MessageOutQueueService;
 import ru.codeunited.springmq.MQMessageSender;
 
 import javax.jms.JMSException;
-import java.util.List;
 import java.util.logging.Logger;
 
 /**
@@ -38,10 +37,7 @@ public class MQMessageSenderController {
     public ModelAndView showSendForm() {
         ModelAndView modelAndView = new ModelAndView("tabs");
         modelAndView.addObject("messagesOut", messageOutQueueService.getAll());
-        List<MessageEntity> incList = messageIncQueueService.getAll();
-        incList.add(new MessageEntity("11", "queue1"));
-        incList.add(new MessageEntity("12", "queue2"));
-        modelAndView.addObject("messagesInc", incList);
+        modelAndView.addObject("messagesInc", messageIncQueueService.getAll());
         return modelAndView;
     }
 
@@ -56,9 +52,9 @@ public class MQMessageSenderController {
             messageEntity.setBody(message);
             messageEntity.setQueueName(queue);
             messageOutQueueService.insert(messageEntity);
-            LOG.info("Сообщение  " + message + " отправлено в очередь " + queue + " и сохранено в базу данных, messageId = [" + messageId + "]");
+            LOG.info("Message  " + message + " sent to queue " + queue + ", saved to DB, messageId = [" + messageId + "]");
         } catch (JMSException e) {
-            LOG.severe("Сообщение " + message + " не отправлено в очередь " + queue + " и не сохранено в базу данных");
+            LOG.severe("Message " + message + " was not sent to queue " + queue);
         }
     }
 

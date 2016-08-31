@@ -21,10 +21,6 @@ public abstract class AbstractDao implements CrudDao<MessageEntity> {
     public AbstractDao() {
     }
 
-//    public AbstractDao(DataSource dataSource) {
-//        this.dataSource = dataSource;
-//    }
-
     public void setDataSource(DataSource dataSource) {
         this.dataSource = dataSource;
     }

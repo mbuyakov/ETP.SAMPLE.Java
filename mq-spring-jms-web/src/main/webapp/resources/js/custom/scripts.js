@@ -1,10 +1,17 @@
-//$(document).ready( function () {
-//    $('#table_out').DataTable();
-//} );
-//
-//$(document).ready( function () {
-//    $('#table_inc').DataTable();
-//} );
+//use bootstrap datatable
+$(document).ready( function () {
+    $('#table_out').DataTable();
+} );
+
+//use bootstrap datatable
+$(document).ready( function () {
+    $('#table_inc').DataTable();
+} );
+
+//enable all tooltips in the document
+$(document).ready(function(){
+    $('[data-toggle="tooltip"]').tooltip();
+});
 
 $('#myTab a').click(function(e) {
   e.preventDefault();
@@ -41,44 +48,11 @@ $('#modalEdit0').find('.saveBtn').on('click', function () {
     });
 });
 
-
-//function showAlert(message, alertType) {
-//    $('#alert_placeholder').
-//    append('<div id="alertdiv" class="alert alert-' + alertType + '"><a class="close" data-dismiss="alert">×</a><span>' + message + '</span></div>');
-//    setTimeout(function () {
-//        $("#alertdiv").remove();
-//    }, 4000);
-//}
-
 function showAlert(modalToHide, message, alertType) {
     modalToHide.modal('hide');
 
     $('#alert_placeholder').append('<div id="alertdiv" class="alert alert-' + alertType + '"><a class="close" data-dismiss="alert">×</a><span>' + message + '</span></div>');
-//    setTimeout(function () {
-//        $("#alertdiv").remove();
-//    }, 4000);
-//    modalToHide.on('hide.bs.modal', $('#tab-loaded-content').load($('li.active a[data-toggle="tab"]').attr('href')));
-//    $('#tab-loaded-content').load($('li.active a[data-toggle="tab"]').attr('href'));
     modalToHide.on('hide.bs.modal', location.reload());
-}
-
-function updateTab() {
-    var tab = $('.nav-tabs .active').text().toLowerCase();
-    console.log("tab = %s", tab);
-
-    $.ajax({
-        type: "POST",
-        cache: false,
-        url: updateTabs,
-        data: {tab: tab},
-        success: function (response) {
-            $('.tab-content').find('#' + tab).html(response);
-//            jump('top');
-        },
-        error: function (e) {
-            alert('Error: ' + e);
-        }
-    });
 }
 
 

@@ -95,20 +95,23 @@
         <property name="dataSource" ref="dataSource" />
     </bean>
 
-    <context:property-placeholder location="classpath:db.properties"
-                                  ignore-unresolvable="true"/>
-
-    <bean id="dataSource" class="org.apache.commons.dbcp2.BasicDataSource" destroy-method="close">
+    <bean id="dataSource" class="org.springframework.jdbc.datasource.SimpleDriverDataSource">
         <property name="driverClassName" value="org.h2.Driver" />
-        <property name="url" value="jdbc:h2:~/test" />
+        <property name="url" value="jdbc:h2:mqdb" />
+        <!-- property name="url" value="jdbc:h2:dbmq;INIT=CREATE SCHEMA IF NOT EXISTS mq\\;SET SCHEMA mq\\;runscript from 'schema.sql'" / -->
         <property name="username" value="sa" />
         <property name="password" value="" />
     </bean>
 
-    <jdbc:embedded-database id="dataSource" type="H2">
+    <!-- jdbc:h2:mem:test;INIT=create schema if not exists test\;runscript from '~/sql/schema.sql -->
+
+    <!-- jdbc:embedded-database id="dataSource" type="H2">
         <jdbc:script location="classpath:schema.sql"/>
-        <!-- jdbc:script location="classpath:db/sql/insert-data.sql"/ -->
-    </jdbc:embedded-database>
+    </jdbc:embedded-database -->
+
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
 
     <tx:annotation-driven proxy-target-class="true"/>
 

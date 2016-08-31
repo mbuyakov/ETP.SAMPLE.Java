@@ -21,8 +21,8 @@
     <br></br>
 
     <ul class="nav nav-tabs"  id="myTab">
-        <li class="active"><a href="#out">OUT</a></li>
-        <li><a href="#inc">INC</a></li>
+        <li class="active"><a href="#out" data-toggle="tooltip" title="Отправленные сообщения">OUT</a></li>
+        <li><a href="#inc" data-toggle="tooltip" title="Полученные сообщения">INC</a></li>
     </ul>
 
     <div class="tab-content" id="tab-loaded-content">
@@ -53,7 +53,8 @@
                         </div>
                         <div class="form-group">
                             <label for="queue" class="control-label">Очередь:</label>
-                            <input type="text" class="form-control queue" id="queue" name="queue" required="required">
+                            <input type="text" class="form-control queue" id="queue" name="queue" required="required"
+                            data-toggle="tooltip" title="Например, SAMPLE.APPLICATION_INC, SAMPLE.STATUS_OUT">
                         </div>
                     </form>
 
