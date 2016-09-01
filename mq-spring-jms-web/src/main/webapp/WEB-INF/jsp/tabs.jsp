@@ -16,8 +16,10 @@
     <div id="alert_placeholder"></div>
 
     <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalEdit0">
-       Отправить сообщение
+       <span class="glyphicon glyphicon-send"></span> Отправить сообщение
     </button>
+    <br></br>
+    <a class="btn btn-success refreshBtn"><span class="glyphicon glyphicon-refresh"></span> Обновить</a>
     <br></br>
 
     <ul class="nav nav-tabs"  id="myTab">
@@ -59,8 +61,8 @@
                     </form>
 
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-default" data-dismiss="modal">Отменить</button>
-                        <a class="btn btn-default saveBtn" data-dismiss="modal">Отправить</a>
+                        <button type="button" class="btn btn-danger" data-dismiss="modal">Отменить</button>
+                        <a class="btn btn-primary saveBtn" data-dismiss="modal">Отправить</a>
                     </div>
                 </div>
             </div>

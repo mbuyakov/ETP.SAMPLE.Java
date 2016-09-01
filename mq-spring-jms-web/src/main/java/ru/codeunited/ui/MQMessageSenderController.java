@@ -57,23 +57,4 @@ public class MQMessageSenderController {
             LOG.severe("Message " + message + " was not sent to queue " + queue);
         }
     }
-
-    @ResponseBody
-    @RequestMapping(value = "/updateTabs", method = RequestMethod.POST)
-    public ModelAndView updateTabs(@RequestParam(value = "tab") String tab) {
-
-        ModelAndView modelAndView = new ModelAndView();
-        switch (tab.charAt(0)) {
-            case 'o':
-                modelAndView.setViewName("out");
-                modelAndView.addObject("messagesOut", messageOutQueueService.getAll());
-                break;
-            case 'i':
-                modelAndView.setViewName("inc");
-                modelAndView.addObject("messagesInc", messageIncQueueService.getAll());
-                break;
-        }
-        LOG.info("Tab [" + tab + "]");
-        return modelAndView;
-    }
 }

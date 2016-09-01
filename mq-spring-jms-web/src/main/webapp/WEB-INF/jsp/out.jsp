@@ -1,13 +1,12 @@
 <!--data table -->
-<div class="container">
     <div class="row">
-        <table id="table_out" class="table table-striped" display>
+        <table id="table_out" class="table table-striped">
             <thead>
             <tr>
-                <th class="col-lg-2">MSG_ID</th>
-                <th class="col-lg-2">Body</th>
-                <th class="col-lg-2">Queue</th>
-                <th class="col-lg-2">Date</th>
+                <th>MSG_ID</th>
+                <th>Body</th>
+                <th>Queue</th>
+                <th>Date</th>
             </tr>
             </thead>
             <tbody>
@@ -22,4 +21,3 @@
             </tbody>
         </table>
     </div>
-</div>

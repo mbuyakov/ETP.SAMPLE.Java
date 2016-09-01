@@ -1,15 +1,8 @@
-//use bootstrap datatable
 $(document).ready( function () {
+//use bootstrap datatable
     $('#table_out').DataTable();
-} );
-
-//use bootstrap datatable
-$(document).ready( function () {
     $('#table_inc').DataTable();
-} );
-
 //enable all tooltips in the document
-$(document).ready(function(){
     $('[data-toggle="tooltip"]').tooltip();
 });
 
@@ -28,11 +21,13 @@ $("ul.nav-tabs > li > a").on("shown.bs.tab", function(e) {
 var hash = window.location.hash;
 $('#myTab a[href="' + hash + '"]').tab('show');
 
+$('.container').find('.refreshBtn').on('click', function () {
+    location.reload();
+});
+
 $('#modalEdit0').find('.saveBtn').on('click', function () {
     var message = $('#message').val();
     var queue = $('#queue').val();
-
-    console.log("message = %s, queue = %s", message, queue);
 
     $.ajax({
         type: "POST",
@@ -42,17 +37,23 @@ $('#modalEdit0').find('.saveBtn').on('click', function () {
             showAlert($('#modalEdit0'), 'Сообщение ' + message + ' было успешно отправлено в очередь ' + queue, 'success');
         },
         error: function (e) {
-         //   alert('Error: ' + e);
+             console.log("Error = %s", e);
             showAlert($('#modalEdit0'), 'При отправке сообщения ' + message + ' в очередь ' + queue + ' произошла ошибка', 'danger');
         }
     });
+});
+
+$('#modalEdit0').on('show.bs.modal', function (e) {
+    resetEdit($(this));
 });
 
 function showAlert(modalToHide, message, alertType) {
     modalToHide.modal('hide');
 
     $('#alert_placeholder').append('<div id="alertdiv" class="alert alert-' + alertType + '"><a class="close" data-dismiss="alert">×</a><span>' + message + '</span></div>');
-    modalToHide.on('hide.bs.modal', location.reload());
 }
 
+function resetEdit(modal) {
+    modal.find(':input').val('');
+}
 

@@ -16,7 +16,7 @@
 
     <context:annotation-config/>
     <context:component-scan base-package="ru.codeunited"/>
-    <context:property-placeholder location="classpath:wmq.properties"
+    <context:property-placeholder location="classpath:wmq.properties, classpath:db.properties"
                                   ignore-unresolvable="true"/>
     <bean class="com.ibm.mq.jms.MQQueueConnectionFactory" id="mqBindingConnectionFactory">
     </bean>
@@ -95,19 +95,18 @@
         <property name="dataSource" ref="dataSource" />
     </bean>
 
+    <!-- dataSource -->
+
     <bean id="dataSource" class="org.springframework.jdbc.datasource.SimpleDriverDataSource">
-        <property name="driverClassName" value="org.h2.Driver" />
-        <property name="url" value="jdbc:h2:mqdb" />
-        <!-- property name="url" value="jdbc:h2:dbmq;INIT=CREATE SCHEMA IF NOT EXISTS mq\\;SET SCHEMA mq\\;runscript from 'schema.sql'" / -->
-        <property name="username" value="sa" />
-        <property name="password" value="" />
+        <property name="driverClass" value="${db.driver}" />
+        <property name="url" value="${db.url}" />
+        <property name="username" value="${db.user}" />
+        <property name="password" value="${db.password}" />
     </bean>
 
-    <!-- jdbc:h2:mem:test;INIT=create schema if not exists test\;runscript from '~/sql/schema.sql -->
-
-    <!-- jdbc:embedded-database id="dataSource" type="H2">
-        <jdbc:script location="classpath:schema.sql"/>
-    </jdbc:embedded-database -->
+    <jdbc:initialize-database data-source="dataSource" ignore-failures="DROPS">
+        <jdbc:script location="${db.init.script.location}" />
+    </jdbc:initialize-database>
 
     <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
         <property name="dataSource" ref="dataSource"/>
